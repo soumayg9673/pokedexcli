@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestCleanInpu(t *testing.T) {
+func TestCleanInput(t *testing.T) {
 	cases := []struct {
 		input    string
 		expected []string
@@ -20,6 +20,10 @@ func TestCleanInpu(t *testing.T) {
 		{
 			input:    "Charmander Bulbasaur PIKACHU",
 			expected: []string{"charmander", "bulbasaur", "pikachu"},
+		},
+		{
+			input:    "  help  world  ",
+			expected: []string{"help", "world"},
 		},
 	}
 

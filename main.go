@@ -12,7 +12,12 @@ func main() {
 		fmt.Print("Pokedox > ")
 		if scanner.Scan() && scanner.Text() != "" {
 			ci := cleanInput(scanner.Text())
-			fmt.Printf("Your command was: %s\n", ci[0])
+			v, ok := cliRegistry()[ci[0]]
+			if !ok {
+				fmt.Println("Unknown command")
+			} else {
+				v.callback()
+			}
 		}
 	}
 }
