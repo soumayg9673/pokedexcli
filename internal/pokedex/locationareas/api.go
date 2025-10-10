@@ -18,3 +18,10 @@ func GetLocationAreas(url string) (loc LocationAreaList, err error) {
 	}
 	return
 }
+
+func GetLocationAreasData(data []byte) (loc LocationAreaList, err error) {
+	if errJson := json.Unmarshal(data, &loc); errJson != nil {
+		return
+	}
+	return
+}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/soumayg9673/pokedexcli/internal/pokecache"
 	"github.com/soumayg9673/pokedexcli/internal/pokedex/locationareas"
 )
 
@@ -42,54 +43,72 @@ type cliCommand struct {
 type config struct {
 	next     string
 	previous string
+	cache    pokecache.Cache
 }
 
-func (c config) onCommandExit() error {
+func (c *config) onCommandExit() error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
-	return errors.New(cliRegistry(&c)["exit"].name)
+	return errors.New(cliRegistry(c)["exit"].name)
 }
 
-func (c config) onCommandHelp() error {
+func (c *config) onCommandHelp() error {
 	fmt.Print(`Welcome to the Pokedex!
 Usage:
 
 help: Displays a help message
 exit: Exit the Pokedex
 `)
-	return errors.New(cliRegistry(&c)["help"].name)
+	return errors.New(cliRegistry(c)["help"].name)
 }
 
 func (c *config) onCommandMap() error {
 	fullurl := c.next
-	if fullurl == "" {
-		fullurl = "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
-	}
-	loc, err := locationareas.GetLocationAreas(fullurl)
-	if err != nil {
-		return err
-	}
-	c.next = loc.Next
-	c.previous = loc.Previous
 
-	loc.PrintLocationAreaResultsName()
+	data, ok := c.cache.Get(fullurl)
+	if !ok {
+		loc, err := locationareas.GetLocationAreas(fullurl)
+		if err != nil {
+			return err
+		}
+		c.next = loc.Next
+		c.previous = loc.Previous
+
+		loc.PrintLocationAreaResultsName()
+	} else {
+		loc, err := locationareas.GetLocationAreasData(data)
+		if err != nil {
+			return err
+		}
+		c.next = loc.Next
+		c.previous = loc.Previous
+	}
 
 	return errors.New(cliRegistry(c)["map"].name)
 }
 
 func (c *config) onCommandMapb() error {
 	fullurl := c.previous
-	if fullurl == "" {
-		fullurl = "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
-	}
-	loc, err := locationareas.GetLocationAreas(fullurl)
-	if err != nil {
-		return err
-	}
-	c.next = loc.Next
-	c.previous = loc.Previous
 
-	loc.PrintLocationAreaResultsName()
+	data, ok := c.cache.Get(fullurl)
+	if !ok {
+		loc, err := locationareas.GetLocationAreas(fullurl)
+		if err != nil {
+			return err
+		}
+		c.next = loc.Next
+		c.previous = loc.Previous
+
+		loc.PrintLocationAreaResultsName()
+	} else {
+		loc, err := locationareas.GetLocationAreasData(data)
+		if err != nil {
+			return err
+		}
+		c.next = loc.Next
+		c.previous = loc.Previous
+		loc.PrintLocationAreaResultsName()
+	}
 
 	return errors.New(cliRegistry(c)["map"].name)
 }
