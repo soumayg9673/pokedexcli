@@ -1,27 +1,29 @@
 package locationareas
 
 import (
-	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 )
 
-func GetLocationAreas(url string) (loc LocationAreaList, err error) {
+func GetLocationAreas(url string) (data []byte, err error) {
 	res, err := http.Get(url)
 	if err != nil {
 		return
 	}
 	defer res.Body.Close()
 
-	decoder := json.NewDecoder(res.Body)
-	if errDec := decoder.Decode(&loc); errDec != nil {
-		return
-	}
-	return
+	return io.ReadAll(res.Body)
 }
 
-func GetLocationAreasData(data []byte) (loc LocationAreaList, err error) {
-	if errJson := json.Unmarshal(data, &loc); errJson != nil {
+func GetPokemonFromLocationArea(area string) (data []byte, err error) {
+	fullUrl := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/%s", area)
+
+	res, err := http.Get(fullUrl)
+	if err != nil {
 		return
 	}
-	return
+	defer res.Body.Close()
+
+	return io.ReadAll(res.Body)
 }

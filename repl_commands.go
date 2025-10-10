@@ -31,6 +31,11 @@ func cliRegistry(c *config) map[string]cliCommand {
 			description: "Location area maps previous",
 			callback:    c.onCommandMapb,
 		},
+		"explore": {
+			name:        "explore",
+			description: "Explore location area",
+			callback:    c.onCommandExplore,
+		},
 	}
 }
 
@@ -43,6 +48,7 @@ type cliCommand struct {
 type config struct {
 	next     string
 	previous string
+	area     string
 	cache    pokecache.Cache
 }
 
@@ -65,9 +71,26 @@ exit: Exit the Pokedex
 func (c *config) onCommandMap() error {
 	fullurl := c.next
 
-	data, ok := c.cache.Get(fullurl)
+	cacheData, ok := c.cache.Get(fullurl)
 	if !ok {
-		loc, err := locationareas.GetLocationAreas(fullurl)
+		data, err := locationareas.GetLocationAreas(fullurl)
+		if err != nil {
+			return err
+		}
+
+		c.cache.Add(fullurl, data)
+
+		loc, err := locationareas.GetLocationAreasData(data)
+		if err != nil {
+			return err
+		}
+
+		c.next = loc.Next
+		c.previous = loc.Previous
+
+		loc.PrintLocationAreaResultsName()
+	} else {
+		loc, err := locationareas.GetLocationAreasData(cacheData)
 		if err != nil {
 			return err
 		}
@@ -75,13 +98,6 @@ func (c *config) onCommandMap() error {
 		c.previous = loc.Previous
 
 		loc.PrintLocationAreaResultsName()
-	} else {
-		loc, err := locationareas.GetLocationAreasData(data)
-		if err != nil {
-			return err
-		}
-		c.next = loc.Next
-		c.previous = loc.Previous
 	}
 
 	return errors.New(cliRegistry(c)["map"].name)
@@ -90,25 +106,60 @@ func (c *config) onCommandMap() error {
 func (c *config) onCommandMapb() error {
 	fullurl := c.previous
 
-	data, ok := c.cache.Get(fullurl)
+	cacheData, ok := c.cache.Get(fullurl)
 	if !ok {
-		loc, err := locationareas.GetLocationAreas(fullurl)
+		data, err := locationareas.GetLocationAreas(fullurl)
 		if err != nil {
 			return err
 		}
-		c.next = loc.Next
-		c.previous = loc.Previous
 
-		loc.PrintLocationAreaResultsName()
-	} else {
+		c.cache.Add(fullurl, data)
+
 		loc, err := locationareas.GetLocationAreasData(data)
 		if err != nil {
 			return err
 		}
+
 		c.next = loc.Next
 		c.previous = loc.Previous
+	} else {
+		loc, err := locationareas.GetLocationAreasData(cacheData)
+		if err != nil {
+			return err
+		}
+		c.next = loc.Next
+		c.previous = loc.Previous
+
 		loc.PrintLocationAreaResultsName()
 	}
 
-	return errors.New(cliRegistry(c)["map"].name)
+	return errors.New(cliRegistry(c)["mapb"].name)
+}
+
+func (c *config) onCommandExplore() error {
+	cacheData, ok := c.cache.Get(c.area)
+	if !ok {
+		data, err := locationareas.GetPokemonFromLocationArea(c.area)
+		if err != nil {
+			return err
+		}
+
+		c.cache.Add(c.area, data)
+
+		loc, err := locationareas.GetPokemonsFromLocationAreaData(data)
+		if err != nil {
+			return err
+		}
+
+		loc.PrintPokemonsFromLocationAreaResult(c.area)
+	} else {
+		loc, err := locationareas.GetPokemonsFromLocationAreaData(cacheData)
+		if err != nil {
+			return err
+		}
+
+		loc.PrintPokemonsFromLocationAreaResult(c.area)
+	}
+
+	return errors.New(cliRegistry(c)["explore"].name)
 }
