@@ -23,3 +23,17 @@ func CatchPokemon(baseExp int) bool {
 	}
 	return false
 }
+
+func (p Pokemon) InspectPokemon() {
+	fmt.Printf("Name: %s\n", p.Name)
+	fmt.Printf("Height: %v\n", p.Height)
+	fmt.Printf("Weight: %v\n", p.Weight)
+	fmt.Println("Stats:")
+	for _, s := range p.Stats {
+		fmt.Printf("\t-%s: %v\n", s.Stat.Name, s.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, t := range p.Types {
+		fmt.Printf("\t-%s\n", t.Type.Name)
+	}
+}

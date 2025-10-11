@@ -31,14 +31,23 @@ func main() {
 						c.area = ci[1]
 					}
 					c.catchPokemon = ""
+					c.inspectPokemon = ""
 				case "catch":
 					if len(ci) == 2 {
 						c.catchPokemon = ci[1]
 					}
 					c.area = ""
+					c.inspectPokemon = ""
+				case "inspect":
+					if len(ci) == 2 {
+						c.inspectPokemon = ci[1]
+					}
+					c.area = ""
+					c.catchPokemon = ""
 				default:
 					c.area = ""
 					c.catchPokemon = ""
+					c.inspectPokemon = ""
 				}
 				if err := v.callback(); err != nil {
 					fmt.Println(err)

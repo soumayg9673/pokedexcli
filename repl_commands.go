@@ -41,6 +41,11 @@ func cliRegistry(c *config) map[string]cliCommand {
 			description: "Catch Pokemon",
 			callback:    c.onCommandCatch,
 		},
+		"inspect": {
+			name:        "inspect",
+			description: "Inspect a catched pokemon",
+			callback:    c.onCommandInspect,
+		},
 	}
 }
 
@@ -51,12 +56,13 @@ type cliCommand struct {
 }
 
 type config struct {
-	next         string
-	previous     string
-	area         string
-	catchPokemon string
-	cache        pokecache.Cache
-	pokemons     map[string]pokemon.Pokemon
+	next           string
+	previous       string
+	area           string
+	catchPokemon   string
+	inspectPokemon string
+	cache          pokecache.Cache
+	pokemons       map[string]pokemon.Pokemon
 }
 
 func (c *config) onCommandExit() error {
@@ -199,5 +205,15 @@ func (c *config) onCommandCatch() error {
 		fmt.Printf("%s escaped!\n", c.catchPokemon)
 	}
 
+	return nil
+}
+
+func (c *config) onCommandInspect() error {
+	pok, ok := c.pokemons[c.inspectPokemon]
+	if !ok {
+		return fmt.Errorf("you have not caught that pokemon")
+	}
+
+	pok.InspectPokemon()
 	return nil
 }
