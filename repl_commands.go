@@ -1,12 +1,12 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
 	"github.com/soumayg9673/pokedexcli/internal/pokecache"
 	"github.com/soumayg9673/pokedexcli/internal/pokedex/locationareas"
+	"github.com/soumayg9673/pokedexcli/internal/pokedex/pokemon"
 )
 
 func cliRegistry(c *config) map[string]cliCommand {
@@ -36,6 +36,11 @@ func cliRegistry(c *config) map[string]cliCommand {
 			description: "Explore location area",
 			callback:    c.onCommandExplore,
 		},
+		"catch": {
+			name:        "catch",
+			description: "Catch Pokemon",
+			callback:    c.onCommandCatch,
+		},
 	}
 }
 
@@ -46,16 +51,18 @@ type cliCommand struct {
 }
 
 type config struct {
-	next     string
-	previous string
-	area     string
-	cache    pokecache.Cache
+	next         string
+	previous     string
+	area         string
+	catchPokemon string
+	cache        pokecache.Cache
+	pokemons     map[string]pokemon.Pokemon
 }
 
 func (c *config) onCommandExit() error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
-	return errors.New(cliRegistry(c)["exit"].name)
+	return nil
 }
 
 func (c *config) onCommandHelp() error {
@@ -65,7 +72,7 @@ Usage:
 help: Displays a help message
 exit: Exit the Pokedex
 `)
-	return errors.New(cliRegistry(c)["help"].name)
+	return nil
 }
 
 func (c *config) onCommandMap() error {
@@ -100,7 +107,7 @@ func (c *config) onCommandMap() error {
 		loc.PrintLocationAreaResultsName()
 	}
 
-	return errors.New(cliRegistry(c)["map"].name)
+	return nil
 }
 
 func (c *config) onCommandMapb() error {
@@ -133,7 +140,7 @@ func (c *config) onCommandMapb() error {
 		loc.PrintLocationAreaResultsName()
 	}
 
-	return errors.New(cliRegistry(c)["mapb"].name)
+	return nil
 }
 
 func (c *config) onCommandExplore() error {
@@ -161,5 +168,36 @@ func (c *config) onCommandExplore() error {
 		loc.PrintPokemonsFromLocationAreaResult(c.area)
 	}
 
-	return errors.New(cliRegistry(c)["explore"].name)
+	return nil
+}
+
+func (c *config) onCommandCatch() error {
+	fmt.Printf("Throwing a Pokeball at %s...\n", c.catchPokemon)
+
+	if c.catchPokemon == "" {
+		return fmt.Errorf("no pokemon to catch")
+	}
+
+	data, err := pokemon.GetPokemon(c.catchPokemon)
+	if err != nil {
+		return err
+	}
+
+	pok, err := pokemon.GetPokemonData(data)
+	if err != nil {
+		return err
+	}
+
+	if _, ok := c.pokemons[pok.Name]; ok {
+		return fmt.Errorf("pokemon already caught")
+	}
+
+	if catchPokemon := pokemon.CatchPokemon(pok.BaseExperience); catchPokemon {
+		fmt.Printf("%s was caught!\n", c.catchPokemon)
+		c.pokemons[pok.Name] = pok
+	} else {
+		fmt.Printf("%s escaped!\n", c.catchPokemon)
+	}
+
+	return nil
 }

@@ -7,13 +7,15 @@ import (
 	"time"
 
 	"github.com/soumayg9673/pokedexcli/internal/pokecache"
+	"github.com/soumayg9673/pokedexcli/internal/pokedex/pokemon"
 )
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	c := config{
-		next:  "https://pokeapi.co/api/v2/location-area?offset=0&limit=20",
-		cache: *pokecache.NewCache(5 * time.Second),
+		next:     "https://pokeapi.co/api/v2/location-area?offset=0&limit=20",
+		cache:    *pokecache.NewCache(5 * time.Second),
+		pokemons: make(map[string]pokemon.Pokemon),
 	}
 	for {
 		fmt.Print("Pokedox > ")
@@ -28,10 +30,19 @@ func main() {
 					if len(ci) == 2 {
 						c.area = ci[1]
 					}
+					c.catchPokemon = ""
+				case "catch":
+					if len(ci) == 2 {
+						c.catchPokemon = ci[1]
+					}
+					c.area = ""
 				default:
 					c.area = ""
+					c.catchPokemon = ""
 				}
-				v.callback()
+				if err := v.callback(); err != nil {
+					fmt.Println(err)
+				}
 			}
 		}
 	}
