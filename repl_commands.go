@@ -46,6 +46,11 @@ func cliRegistry(c *config) map[string]cliCommand {
 			description: "Inspect a catched pokemon",
 			callback:    c.onCommandInspect,
 		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "get all my pokemons",
+			callback:    c.onCommandPokedex,
+		},
 	}
 }
 
@@ -201,6 +206,7 @@ func (c *config) onCommandCatch() error {
 	if catchPokemon := pokemon.CatchPokemon(pok.BaseExperience); catchPokemon {
 		fmt.Printf("%s was caught!\n", c.catchPokemon)
 		c.pokemons[pok.Name] = pok
+		fmt.Println("You may now inspect it with the inspect command.")
 	} else {
 		fmt.Printf("%s escaped!\n", c.catchPokemon)
 	}
@@ -215,5 +221,17 @@ func (c *config) onCommandInspect() error {
 	}
 
 	pok.InspectPokemon()
+	return nil
+}
+
+func (c *config) onCommandPokedex() error {
+	if len(c.pokemons) == 0 {
+		return fmt.Errorf("no pokemons caught")
+	}
+
+	fmt.Println("Your Pokedex:")
+	for p := range c.pokemons {
+		fmt.Printf("\t-%s\n", p)
+	}
 	return nil
 }
